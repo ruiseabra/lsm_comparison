@@ -1,51 +1,4 @@
-# for use with lsm source code version 202
-
-########################-
-## collect tide data ###-
-########################-
-# xy = list(lon = lon, lat = lat)
-# t_range = POSIXct date:time range (2 values)
-# t_res = every 't_res' seconds
-########################-
-fes.tides <- function(loc, t_range, t_res) {
-  Sys.setenv(HDF5_DISABLE_VERSION_CHECK = "2")
-  # prepare
-  ORIGIN  <- ymd("1950-01-01")
-  T_RANGE <- (t_range + c(0, t_res)) %>%
-    julian(origin = ORIGIN) %>%
-    as.numeric %>%
-    formatC(format = "f")
-  T_RES <- t_res / 60
-  CALL  <- str_c("fes_slev", loc$lat, loc$lon, T_RANGE[1], T_RANGE[2], T_RES, sep = " ")
-  # run fes_slev
-  tides <- system(CALL, intern = TRUE)[-(1:2)] %>%
-    str_split(",") 
-  # extract timestamps
-  times <- map_chr(tides, 1) %>% 
-    as.numeric %>% 
-    "*"(., (24 * 3600)) %>% 
-    round
-  times <- (times - (times %% 60)) %>% 
-    as.POSIXct(origin = ORIGIN)
-  times <- times - (as.numeric(times) %% 60)
-  steady <- diff(times) %>%
-    unique %>%
-    length %>%
-    "=="(., 1)
-  if (!steady) stop("the period of 'times' is irregular")
-  # extract tide elevation
-  tides <- map_chr(tides, 2) %>% as.numeric
-  # combine
-  tides <- tibble(time = times, tide = tides)
-  # filter to ensure that the data return does not exceed the t_range supplied
-  tides <- filter(tides, time %within% interval(t_range[1], t_range[2]))
-  # return
-  tides
-}
-########################-
-########################-
-########################-
-
+# for use with lsm source code version 203
 
 ########################-
 ## make forcing file ###-
@@ -62,11 +15,11 @@ forcing.file <- function(loc, t_range, t_res, output.path) {
   ## read weather data
   #forcing_cols <- c("time", "wind", "air", "sst", "sw", "lw", "rh", "pres", "rain", "wave")
   forcing_cols <- c("time", "wind", "air", "sst", "sw", "lw", "rh", "pres", "rain")
-  
+
   wfile <- dir("data/", full.names = TRUE, pattern = "weather")
   if (length(wfile) != 1) stop("there must be one - and only one - with 'weather' on its filename")
   load(wfile)
-  
+
   ### must be a tibble with the following columns (colnames must be respected):
   # time - YYYY-mm-dd HH:MM
   # wind - wind speed (m/s) [alternativelly supply u and v components (m/s)]
@@ -78,13 +31,13 @@ forcing.file <- function(loc, t_range, t_res, output.path) {
   # pres - surface pressure (Pa)
   # rain - precipitation rate (mm/h, kg/m2/h)
   # wave - NOT YET IMPLEMENTED sig or max wave height (m)
-  
+
   if (!identical(sort(colnames(w)), sort(forcing_cols))) stop("colnames(w) does not match requirements")
   w <- filter(w, time %within% interval(t_range[1], t_range[2]))
   w <- w[, forcing_cols]
-  
+
   # interpolate to the desired time resolution
-  res <- with(w, difftime(time[1], time[2], units = "sec")) %>% abs 
+  res <- with(w, difftime(time[1], time[2], units = "sec")) %>% abs
   if (t_res != res) {
     t2 <- seq.POSIXt(first(t_range), last(t_range), by = t_res)
     tmp <- merge(zoo(select(w, -time), w$time), zoo(, t2))
@@ -93,7 +46,7 @@ forcing.file <- function(loc, t_range, t_res, output.path) {
     w <- as_tibble(cbind(t2, tmp))
     colnames(w) <- forcing_cols
   }
-  
+
   # get tide data
   tides <- fes.tides(loc, t_range, t_res)$tide
   # barometric pressure correction (+10 hPa = -10 cm; REF = 1013 hPa)
@@ -103,6 +56,9 @@ forcing.file <- function(loc, t_range, t_res, output.path) {
   w$tide <- ifelse(tides > loc$height, 1, 0)
   # include waverunup
   # include atmospheric effects (pressure, wind surge)
+
+  # replace sst from sat by sst from logger data
+  w$sst <- approx(wat$time, wat$temp, w$time, method = "linear", rule = 2)$y %>% "+"(273.15) %>% round(2)
 
   # clean, round and format
   w$wind <- sprintf("%6.2f", w$wind)
@@ -114,7 +70,7 @@ forcing.file <- function(loc, t_range, t_res, output.path) {
   w$pres <- sprintf("%9.1f", w$pres)
   w$rain <- sprintf("%7.2f", ifelse(w$rain < 0, 0, w$rain))
   w$tide <- sprintf("%2i"  , w$tide)
-  
+
   # export focing file to temporary folder
   write.table(x = select(w, -time), file = output.path, quote = FALSE, col.names = FALSE, row.names = FALSE)
 }
@@ -160,17 +116,17 @@ compile.lsm <- function(path, layer = 1) {
   lsm2 <- str_c(tmp, "lsm.f")
   # compiled lsm
   lsm3 <- str_c(tmp, "lsm")
-  
+
   if (length(lsm1) != 1) stop("there must be one, and only one, file of the same lsm version in the 'source' folder")
   invisible(file.copy(lsm1, lsm2))
-  
+
   source(str_c(dirname(path), "/options.R"))
   # Output temperature of layer...
   opt$NLAYER <- layer
   opt <- tibble(var = names(opt), val = opt)
   opt$var <- str_c("X", opt$var, "X")
   opt$val <- map_chr(opt$val, ~fortran.multiLine(.x))
-  
+
   ## edit source file
   x <- read_lines(lsm2)
   for (i in 1:nrow(opt)) {
@@ -180,10 +136,10 @@ compile.lsm <- function(path, layer = 1) {
   }
 
   write(x, file = lsm2)
-  
+
   # compile
   system(str_c("gfortran ", lsm2, " -o ", lsm3))
-  
+
   basename(lsm3)
 }
 ########################-

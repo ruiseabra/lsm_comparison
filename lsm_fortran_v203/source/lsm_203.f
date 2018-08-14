@@ -84,7 +84,7 @@ C     Annual constant bottom boundary soil temperature (K)
 
 C ---------------------------------------------------------------------
 C VARIABLES ADDED FOR MUSSEL MODEL
-C ---------------------------------------------------------------------     
+C ---------------------------------------------------------------------
       INTEGER BEDDEPTH
       REAL CONTACT
       REAL SST
@@ -194,7 +194,7 @@ C INITIALIZE SOME VARIABLES BEFORE THE TIME LOOP
 
       SNOALB     = 0.75
       SNEQV      = 0
-      TSKIN      = 285
+      TSKIN      = 273.15
       SNOWH      = 0
 
 C #############################################################
@@ -275,7 +275,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
-      FUNCTION DQS (T) 
+      FUNCTION DQS (T)
       IMPLICIT NONE
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CC  CALCULATE VALUES OF VAPOR PRESSURE (E)
@@ -303,25 +303,25 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
       REAL FRZ_T
       COMMON /GLOBAL2/FRZ_T
-C 
+C
 C     ABOUT THE PARAMETERS:
 C
 C     EPS - WATER / DRY AIR MOLECULAR MASS RATIO, EPSILON
 C
-C   VALUES FOR SPECIFIC HEAT CAPACITY AND INDIVIDUAL GAS CONSTANTS 
+C   VALUES FOR SPECIFIC HEAT CAPACITY AND INDIVIDUAL GAS CONSTANTS
 C   IN [JOULES/(KG*KELVIN)] UNITS.
 C
-C     DRY AIR: 
+C     DRY AIR:
 C             CP, CV
 C     WATER VAPOR:
-C                 CVV = 1410. 
+C                 CVV = 1410.
 C                 CPV = 1870.
 C                 RV  =  461.5
 C     LIQUID WATER:
 C                  CW = 4187.
 C
 C     ESO = ES(T=273.15 K) = SAT. VAPOR PRESSURE (IN PASCAL) AT T=FRZ_T
-C 
+C
 C     SAT. MIXING  RATIO: QS ~= EPS*ES/P
 C     CLAUSIUS-CLAPEYRON: DES/DT = L*ES/(RV*T^2)
 C     @QS/@T =  (EPS/P)*DES/DT
@@ -338,7 +338,7 @@ C     @QS/@T =  (EPS/P)*DES/DT
       IMPLICIT NONE
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CC    RETRIEVE THE APPROPRIATE VALUE OF DQSDT (THE CHANGE
-CC    OF THE SATURATION MIXING RATIO WITH RESPECT TO THE 
+CC    OF THE SATURATION MIXING RATIO WITH RESPECT TO THE
 CC    CHANGE IN TEMPERATURE)
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       REAL SFC_TEMP
@@ -383,7 +383,7 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
       END
 
 
-      SUBROUTINE QDATAP (SFC_TEMP,SFC_PRESS,RH,Q2,Q2SAT,ESAT) 
+      SUBROUTINE QDATAP (SFC_TEMP,SFC_PRESS,RH,Q2,Q2SAT,ESAT)
       IMPLICIT NONE
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 CC  OBTAIN SPECIFIC HUMIDITY (q) FROM RELATIVE HUMIDITY
@@ -480,7 +480,7 @@ C    CONVERT mm/h to mm/sec
 C ----------------------------------------------------------------------
 C OUTPUTS, DIAGNOSTICS, PARAMETERS BELOW GENERALLY NOT NECESSARY WHEN
 C COUPLED WITH E.G. A NWP MODEL (SUCH AS THE NOAA/NWS/NCEP MESOSCALE ETA
-C MODEL).  OTHER APPLICATIONS MAY REQUIRE DIFFERENT OUTPUT VARIABLES. 
+C MODEL).  OTHER APPLICATIONS MAY REQUIRE DIFFERENT OUTPUT VARIABLES.
 C ----------------------------------------------------------------------
      O  EDIR,ET,ESNOW,DEW,
      O  BETA,ETP,SSOIL,
@@ -591,7 +591,7 @@ C   SNCOVR     FRACTIONAL SNOW COVER (UNITLESS FRACTION, 0-1)
 C ----------------------------------------------------------------------
 C 8. PARAMETERS (P):
 C ----------------------------------------------------------------------
-C   SMCWLT     WILTING POINT, DRY SOIL MOISTURE THRESHOLD WHERE DIRECT 
+C   SMCWLT     WILTING POINT, DRY SOIL MOISTURE THRESHOLD WHERE DIRECT
 c                EVAP FRM TOP LAYER ENDS (VOLUMETRIC)
 C   SMCMAX     POROSITY, I.E. SATURATED VALUE OF SOIL MOISTURE
 C                (VOLUMETRIC)
@@ -659,7 +659,7 @@ C ----------------------------------------------------------------------
       REAL RC
       REAL RSNOW
       REAL SNDENS
-      REAL SNCOND 
+      REAL SNCOND
       REAL SSOIL
       REAL SFC_PRESS
       REAL WIND_SPEED
@@ -751,7 +751,7 @@ C ----------------------------------------------------------------------
         SNCOND = 1.0
       ELSE
         SNDENS = SNEQV / SNOWH
-        SNCOND = CSNOW(SNDENS) 
+        SNCOND = CSNOW(SNDENS)
       ENDIF
 C ----------------------------------------------------------------------
 C DETERMINE IF IT'S PRECIPITATING AND WHAT KIND OF PRECIP IT IS.
@@ -782,7 +782,7 @@ C UPDATE SNOW DENSITY BASED ON NEW SNOWFALL, USING OLD AND NEW SNOW.
 C UPDATE SNOW THERMAL CONDUCTIVITY
 C ----------------------------------------------------------------------
         CALL SNOW_NEW (SFC_TEMP,SN_NEW,SNOWH,SNDENS)
-        SNCOND = CSNOW (SNDENS) 
+        SNCOND = CSNOW (SNDENS)
       ELSE
 C ----------------------------------------------------------------------
 C PRECIP IS LIQUID (RAIN), HENCE SAVE IN THE PRECIP VARIABLE THAT
@@ -810,25 +810,25 @@ C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
 C NEXT CALCULATE THE SUBSURFACE HEAT FLUX, WHICH FIRST REQUIRES
 C CALCULATION OF THE THERMAL DIFFUSIVITY.  TREATMENT OF THE
-C LATTER FOLLOWS THAT ON PAGES 148-149 FROM "HEAT TRANSFER IN 
-C COLD CLIMATES", BY V. J. LUNARDINI (PUBLISHED IN 1981 
-C BY VAN NOSTRAND REINHOLD CO.) I.E. TREATMENT OF TWO CONTIGUOUS 
-C "PLANE PARALLEL" MEDIUMS (NAMELY HERE THE FIRST SOIL LAYER 
-C AND THE SNOWPACK LAYER, IF ANY). THIS DIFFUSIVITY TREATMENT 
-C BEHAVES WELL FOR BOTH ZERO AND NONZERO SNOWPACK, INCLUDING THE 
+C LATTER FOLLOWS THAT ON PAGES 148-149 FROM "HEAT TRANSFER IN
+C COLD CLIMATES", BY V. J. LUNARDINI (PUBLISHED IN 1981
+C BY VAN NOSTRAND REINHOLD CO.) I.E. TREATMENT OF TWO CONTIGUOUS
+C "PLANE PARALLEL" MEDIUMS (NAMELY HERE THE FIRST SOIL LAYER
+C AND THE SNOWPACK LAYER, IF ANY). THIS DIFFUSIVITY TREATMENT
+C BEHAVES WELL FOR BOTH ZERO AND NONZERO SNOWPACK, INCLUDING THE
 C LIMIT OF VERY THIN SNOWPACK.  THIS TREATMENT ALSO ELIMINATES
-C THE NEED TO IMPOSE AN ARBITRARY UPPER BOUND ON SUBSURFACE 
+C THE NEED TO IMPOSE AN ARBITRARY UPPER BOUND ON SUBSURFACE
 C HEAT FLUX WHEN THE SNOWPACK BECOMES EXTREMELY THIN.
 C ----------------------------------------------------------------------
 C FIRST CALCULATE THERMAL DIFFUSIVITY OF TOP SOIL LAYER, USING
-C BOTH THE FROZEN AND LIQUID SOIL MOISTURE, FOLLOWING THE 
+C BOTH THE FROZEN AND LIQUID SOIL MOISTURE, FOLLOWING THE
 C SOIL THERMAL DIFFUSIVITY FUNCTION OF PETERS-LIDARD ET AL.
 C (1998,JAS, VOL 55, 1209-1224), WHICH REQUIRES THE SPECIFYING
 C THE QUARTZ CONTENT OF THE GIVEN SOIL CLASS (SEE ROUTINE REDPRM)
 C ----------------------------------------------------------------------
       DF1 = BODY_DIFUSIVITY
 C ----------------------------------------------------------------------
-C FINALLY "PLANE PARALLEL" SNOWPACK EFFECT FOLLOWING 
+C FINALLY "PLANE PARALLEL" SNOWPACK EFFECT FOLLOWING
 C V.J. LINARDINI REFERENCE CITED ABOVE. NOTE THAT DTOT IS
 C COMBINED DEPTH OF SNOWDEPTH AND THICKNESS OF FIRST SOIL LAYER
 C ----------------------------------------------------------------------
@@ -850,7 +850,7 @@ C weigh DF by snow fraction
         DF1 = DF1A * SNCOVR + DF1 * (1.0 - SNCOVR)
 C ----------------------------------------------------------------------
 C CALCULATE SUBSURFACE HEAT FLUX, SSOIL, FROM FINAL THERMAL DIFFUSIVITY
-C OF SURFACE MEDIUMS, DF1 ABOVE, AND SKIN TEMPERATURE AND TOP 
+C OF SURFACE MEDIUMS, DF1 ABOVE, AND SKIN TEMPERATURE AND TOP
 C MID-LAYER SOIL TEMPERATURE
 C ----------------------------------------------------------------------
         SSOIL = DF1 * (TSKIN - STC(1) ) / DTOT
@@ -970,8 +970,8 @@ C ----------------------------------------------------------------------
       REAL ALB, SNOALB, SNCOVR, ALBEDO
 C ----------------------------------------------------------------------
 C SNOALB IS ARGUMENT REPRESENTING MAXIMUM ALBEDO OVER DEEP SNOW,
-C AS PASSED INTO SFLX, AND ADAPTED FROM THE SATELLITE-BASED MAXIMUM 
-C SNOW ALBEDO FIELDS PROVIDED BY D. ROBINSON AND G. KUKLA 
+C AS PASSED INTO SFLX, AND ADAPTED FROM THE SATELLITE-BASED MAXIMUM
+C SNOW ALBEDO FIELDS PROVIDED BY D. ROBINSON AND G. KUKLA
 C (1985, JCAM, VOL 24, 402-411)
 C ----------------------------------------------------------------------
       ALBEDO = ALB + SNCOVR * (SNOALB - ALB)
@@ -993,7 +993,7 @@ C ----------------------------------------------------------------------
       REAL CSNOW
       REAL UNIT
 
-      PARAMETER(UNIT = 0.11631) 
+      PARAMETER(UNIT = 0.11631)
 C ----------------------------------------------------------------------
 C CSNOW IN UNITS OF CAL/(CM*HR*C), RETURNED IN W/(M*C)
 C BASIC VERSION IS DYACHKOVA EQUATION (1960), FOR RANGE 0.1-0.4
@@ -1227,7 +1227,7 @@ C ----------------------------------------------------------------------
       TSURF = (YY + (ZZ1 - 1) * STC(1)) / ZZ1
       CALL TBND (STC(1),STC(2),ZSOIL,ZBOT,1,TBK)
 C ----------------------------------------------------------------------
-C CALCULATE FROZEN WATER CONTENT IN 1ST SOIL LAYER. 
+C CALCULATE FROZEN WATER CONTENT IN 1ST SOIL LAYER.
 C ----------------------------------------------------------------------
       SICE = SMC(1) - SH2O(1)
 C ----------------------------------------------------------------------
@@ -1335,7 +1335,7 @@ C ----------------------------------------------------------------------
      &  (STC(K) .LT. FRZ_T) .OR. (TBK1 .LT. FRZ_T) ) THEN
           TSNSR = SNKSRC(SMC(K),SH2O(K),ZSOIL,DT,K,QTOT)
           RHSTS(K) = RHSTS(K) - TSNSR / DENOM
-        ENDIF 
+        ENDIF
 C ----------------------------------------------------------------------
 C CALC MATRIX COEFS, AI, AND BI FOR THIS LAYER.
 C ----------------------------------------------------------------------
@@ -1431,7 +1431,7 @@ C ----------------------------------------------------------------------
 
       SUBROUTINE NOPAC(ETP,ETA,RAIN,SMC,SMCMAX,SMCWLT,DT,
      &                 Q2,TSKIN,SFC_TEMP,T24,TH2,FDOWN,F1,
-     &                 SSOIL,STC,EPSCA,RCH,RR, 
+     &                 SSOIL,STC,EPSCA,RCH,RR,
      &                 SH2O,SLOPE,KDT,FRZFACT,ZSOIL,
      &                 DKSAT,DWSAT,ZBOT,EDIR,ET,
      &                 FXEXP,BETA,DEW,FLX1,FLX2,FLX3)
@@ -1567,7 +1567,7 @@ C CALL SHFLX TO COMPUTE/UPDATE SOIL HEAT FLUX AND SOIL TEMPS.
 C ----------------------------------------------------------------------
         DF1 = BODY_DIFUSIVITY
 C ----------------------------------------------------------------------
-C COMPUTE INTERMEDIATE TERMS PASSED TO ROUTINE HRT (VIA ROUTINE 
+C COMPUTE INTERMEDIATE TERMS PASSED TO ROUTINE HRT (VIA ROUTINE
 C SHFLX BELOW) FOR USE IN COMPUTING SUBSURFACE HEAT FLUX IN HRT
 C ----------------------------------------------------------------------
       YYNUM = FDOWN - SIGMA * T24 * EMISSIVITY
@@ -1692,7 +1692,7 @@ C ----------------------------------------------------------------------
      &     		 ZSOIL,Z0,CZIL,ROUGHNESS)
       IMPLICIT NONE
 C ----------------------------------------------------------------------
-C INTERNALLY SET (DEFAULT VALUES) FOR SOIL AND VEGETATION PARAMETERS 
+C INTERNALLY SET (DEFAULT VALUES) FOR SOIL AND VEGETATION PARAMETERS
 c REQUIRED FOR THE EXECUSION OF THE NOAH LSM
 C
 C OPTIONAL NON-DEFAULT PARAMETERS CAN BE READ IN, ACCOMMODATING UP TO 30
@@ -1959,7 +1959,7 @@ C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
       RDZ  = 1. / ZLM
       CXCH = EXCM * RDZ
-      DTHV = THLM - T1V     
+      DTHV = THLM - T1V
       DU2  = MAX(WIND_SPEED * WIND_SPEED, EPSU2)
 C ----------------------------------------------------------------------
 C BELJAARS CORRECTION OF USTAR
@@ -2092,10 +2092,10 @@ C ----------------------------------------------------------------------
       END DO
 C ----------------------------------------------------------------------
 C IN THE NO SNOWPACK CASE (VIA ROUTINE NOPAC BRANCH,) UPDATE THE GRND
-C (SKIN) TEMPERATURE HERE IN RESPONSE TO THE UPDATED SOIL TEMPERATURE 
+C (SKIN) TEMPERATURE HERE IN RESPONSE TO THE UPDATED SOIL TEMPERATURE
 C PROFILE ABOVE.  (NOTE: INSPECTION OF ROUTINE SNOPAC SHOWS THAT TSKIN
 C BELOW IS A DUMMY VARIABLE ONLY, AS SKIN TEMPERATURE IS UPDATED
-C DIFFERENTLY IN ROUTINE SNOPAC) 
+C DIFFERENTLY IN ROUTINE SNOPAC)
 C ----------------------------------------------------------------------
       TSKIN = (YY + (ZZ1 - 1.0) * STC(1)) / ZZ1
 C ----------------------------------------------------------------------
@@ -2154,24 +2154,24 @@ C ----------------------------------------------------------------------
       END DO
 C ----------------------------------------------------------------------
 C CALL SUBROUTINES SRT AND SSTEP TO SOLVE THE SOIL MOISTURE
-C TENDENCY EQUATIONS. 
+C TENDENCY EQUATIONS.
 C
 C IF THE INFILTRATING PRECIP RATE IS NONTRIVIAL,
-C   (WE CONSIDER NONTRIVIAL TO BE A PRECIP TOTAL OVER THE TIME STEP 
-C    EXCEEDING ONE ONE-THOUSANDTH OF THE WATER HOLDING CAPACITY OF 
+C   (WE CONSIDER NONTRIVIAL TO BE A PRECIP TOTAL OVER THE TIME STEP
+C    EXCEEDING ONE ONE-THOUSANDTH OF THE WATER HOLDING CAPACITY OF
 C    THE FIRST SOIL LAYER)
-C THEN CALL THE SRT/SSTEP SUBROUTINE PAIR TWICE IN THE MANNER OF 
+C THEN CALL THE SRT/SSTEP SUBROUTINE PAIR TWICE IN THE MANNER OF
 C   TIME SCHEME "F" (IMPLICIT STATE, AVERAGED COEFFICIENT)
-C   OF SECTION 2 OF KALNAY AND KANAMITSU (1988, MWR, VOL 116, 
-C   PAGES 1945-1958)TO MINIMIZE 2-DELTA-T OSCILLATIONS IN THE 
+C   OF SECTION 2 OF KALNAY AND KANAMITSU (1988, MWR, VOL 116,
+C   PAGES 1945-1958)TO MINIMIZE 2-DELTA-T OSCILLATIONS IN THE
 C   SOIL MOISTURE VALUE OF THE TOP SOIL LAYER THAT CAN ARISE BECAUSE
-C   OF THE EXTREME NONLINEAR DEPENDENCE OF THE SOIL HYDRAULIC 
+C   OF THE EXTREME NONLINEAR DEPENDENCE OF THE SOIL HYDRAULIC
 C   DIFFUSIVITY COEFFICIENT AND THE HYDRAULIC CONDUCTIVITY ON THE
 C   SOIL MOISTURE STATE
 C OTHERWISE CALL THE SRT/SSTEP SUBROUTINE PAIR ONCE IN THE MANNER OF
-C   TIME SCHEME "D" (IMPLICIT STATE, EXPLICIT COEFFICIENT) 
+C   TIME SCHEME "D" (IMPLICIT STATE, EXPLICIT COEFFICIENT)
 C   OF SECTION 2 OF KALNAY AND KANAMITSU
-C RAIN1 IS UNITS OF KG/M**2/S OR MM/S, ZSOIL IS NEGATIVE DEPTH IN M 
+C RAIN1 IS UNITS OF KG/M**2/S OR MM/S, ZSOIL IS NEGATIVE DEPTH IN M
 C ----------------------------------------------------------------------
       IF ((RAIN1*DT) .GT. (0.001*1000.0*(-ZSOIL(1))*SMCMAX)) THEN
 C ----------------------------------------------------------------------
@@ -2242,7 +2242,7 @@ C ----------------------------------------------------------------------
       END
 
 
-      FUNCTION SNKSRC (SMC,SH2O,ZSOIL,DT,K,QTOT) 
+      FUNCTION SNKSRC (SMC,SH2O,ZSOIL,DT,K,QTOT)
       IMPLICIT NONE
 C ----------------------------------------------------------------------
 C CALCULATE SINK/SOURCE TERM OF THE TERMAL DIFFUSION EQUATION. (SH2O) IS
@@ -2286,7 +2286,7 @@ C FIRST, IF FREEZING AND REMAINING LIQUID LESS THAN LOWER BOUND, THEN
 C REDUCE EXTENT OF FREEZING, THEREBY LETTING SOME OR ALL OF HEAT FLUX
 C QTOT COOL THE SOIL TEMP LATER IN ROUTINE HRT.
 C ----------------------------------------------------------------------
-      IF (XH2O .LT. SH2O .AND. XH2O .LT. FREE) THEN 
+      IF (XH2O .LT. SH2O .AND. XH2O .LT. FREE) THEN
         IF (FREE .GT. SH2O) THEN
           XH2O = SH2O
         ELSE
@@ -2304,7 +2304,7 @@ C ----------------------------------------------------------------------
         ELSE
           XH2O = FREE
         ENDIF
-      ENDIF 
+      ENDIF
 
       IF (XH2O .LT. 0.0) XH2O = 0.
       IF (XH2O .GT. SMC) XH2O = SMC
@@ -2640,7 +2640,7 @@ C ----------------------------------------------------------------------
       YY  = STC(1) - 0.5 * SSOIL * ZSOIL(1) * ZZ1 / DF1
       T11 = TSKIN
 C ----------------------------------------------------------------------
-C SHFLX WILL CALC/UPDATE THE SOIL TEMPS.  NOTE:  THE SUB-SFC HEAT FLUX 
+C SHFLX WILL CALC/UPDATE THE SOIL TEMPS.  NOTE:  THE SUB-SFC HEAT FLUX
 C (SSOIL1) AND THE SKIN TEMP (T11) OUTPUT FROM THIS SHFLX CALL ARE NOT
 C USED  IN ANY SUBSEQUENT CALCULATIONS. RATHER, THEY ARE DUMMY VARIABLES
 C HERE IN THE SNOPAC CASE, SINCE THE SKIN TEMP AND SUB-SFC HEAT FLUX ARE
@@ -2709,7 +2709,7 @@ C  SNDENS=DS0*(EXP(BFAC*ESD)-1.)/(BFAC*ESD)
 C  BFAC=DTHR*C1*EXP(0.08*TAVGC-C2*DS0)
 C NOTE: BFAC*ESD IN SNDENS EQN ABOVE HAS TO BE CAREFULLY TREATED
 C NUMERICALLY BELOW:
-C   C1 IS THE FRACTIONAL INCREASE IN DENSITY (1/(CM*HR)) 
+C   C1 IS THE FRACTIONAL INCREASE IN DENSITY (1/(CM*HR))
 C   C2 IS A CONSTANT (CM3/G) KOJIMA ESTIMATED AS 21 CMS/G
 C ----------------------------------------------------------------------
       IF (ESDC .GT. 1.E-2) THEN
@@ -2722,12 +2722,12 @@ C ----------------------------------------------------------------------
 C THE FUNCTION OF THE FORM (e**x-1)/x IMBEDDED IN ABOVE EXPRESSION
 C FOR DSX WAS CAUSING NUMERICAL DIFFICULTIES WHEN THE DENOMINATOR "x"
 C (I.E. BFAC*ESDC) BECAME ZERO OR APPROACHED ZERO (DESPITE THE FACT THAT
-C THE ANALYTICAL FUNCTION (e**x-1)/x HAS A WELL DEFINED LIMIT AS 
-C "x" APPROACHES ZERO), HENCE BELOW WE REPLACE THE (e**x-1)/x 
-C EXPRESSION WITH AN EQUIVALENT, NUMERICALLY WELL-BEHAVED 
+C THE ANALYTICAL FUNCTION (e**x-1)/x HAS A WELL DEFINED LIMIT AS
+C "x" APPROACHES ZERO), HENCE BELOW WE REPLACE THE (e**x-1)/x
+C EXPRESSION WITH AN EQUIVALENT, NUMERICALLY WELL-BEHAVED
 C POLYNOMIAL EXPANSION.
 C
-C NUMBER OF TERMS OF POLYNOMIAL EXPANSION, AND HENCE ITS ACCURACY, 
+C NUMBER OF TERMS OF POLYNOMIAL EXPANSION, AND HENCE ITS ACCURACY,
 C IS GOVERNED BY ITERATION LIMIT "IPOL".
 C      IPOL GREATER THAN 9 ONLY MAKES A DIFFERENCE ON DOUBLE
 C            PRECISION (RELATIVE ERRORS GIVEN IN PERCENT %).
@@ -2738,7 +2738,7 @@ C ----------------------------------------------------------------------
       IPOL = 4
       PEXP = 0.
       DO J = IPOL,1,-1
-        PEXP = (1. + PEXP) * BFAC * ESDCX / REAL(J + 1) 
+        PEXP = (1. + PEXP) * BFAC * ESDCX / REAL(J + 1)
       END DO
       PEXP = PEXP + 1.
 
@@ -2806,7 +2806,7 @@ C ----------------------------------------------------------------------
       REAL SNOWH
       REAL NEWSN
       REAL NEWSNC
-      REAL TEMP 
+      REAL TEMP
       REAL TEMPC
 C ----------------------------------------------------------------------
 C CONVERSION INTO SIMULATION UNITS
@@ -2826,7 +2826,7 @@ C-----------------------------------------------------------------------
         DSNEW = 0.05 + 0.0017 * (TEMPC + 15.)**1.5
       ENDIF
 C ----------------------------------------------------------------------
-C ADJUSTMENT OF SNOW DENSITY DEPENDING ON NEW SNOWFALL      
+C ADJUSTMENT OF SNOW DENSITY DEPENDING ON NEW SNOWFALL
 C ----------------------------------------------------------------------
       HNEWC  = NEWSNC / DSNEW
       SNDENS = (SNOWHC * SNDENS + HNEWC * DSNEW) / (SNOWHC + HNEWC)
@@ -2952,27 +2952,27 @@ C IN BELOW, REMOVE THE SQRT IN ABOVE
 C ----------------------------------------------------------------------
         VAL = (1. - EXP(-KDT * DT1))
         DDT = DD * VAL
-        PX  = RAIN1 * DT  
+        PX  = RAIN1 * DT
         IF (PX .LT. 0.0) PX = 0.0
         INFMAX = (PX * (DDT / (PX + DDT))) / DT
 C ----------------------------------------------------------------------
 C FROZEN GROUND VERSION:
 C REDUCTION OF INFILTRATION BASED ON FROZEN GROUND PARAMETERS
 C ----------------------------------------------------------------------
-        FCR = 1. 
-        IF (DICE .GT. 1.E-2) THEN 
-          ACRT = CVFRZ * FRZX / DICE 
+        FCR = 1.
+        IF (DICE .GT. 1.E-2) THEN
+          ACRT = CVFRZ * FRZX / DICE
           SUM = 1.
-          IALP1 = CVFRZ - 1 
+          IALP1 = CVFRZ - 1
           DO J = 1,IALP1
             K = 1
             DO JJ = J+1,IALP1
               K = K * JJ
             END DO
-            SUM = SUM + (ACRT**(CVFRZ - J)) / FLOAT (K) 
+            SUM = SUM + (ACRT**(CVFRZ - J)) / FLOAT (K)
           END DO
-          FCR = 1. - EXP(-ACRT) * SUM 
-        ENDIF 
+          FCR = 1. - EXP(-ACRT) * SUM
+        ENDIF
         INFMAX = INFMAX * FCR
 C ----------------------------------------------------------------------
 C CORRECTION OF INFILTRATION LIMITATION:
@@ -3268,10 +3268,10 @@ C ----------------------------------------------------------------------
 C ----------------------------------------------------------------------
 C FROZEN SOIL HYDRAULIC DIFFUSIVITY.  VERY SENSITIVE TO THE VERTICAL
 C GRADIENT OF UNFROZEN WATER. THE LATTER GRADIENT CAN BECOME VERY
-C EXTREME IN FREEZING/THAWING SITUATIONS, AND GIVEN THE RELATIVELY 
-C FEW AND THICK SOIL LAYERS, THIS GRADIENT SUFFERES SERIOUS 
+C EXTREME IN FREEZING/THAWING SITUATIONS, AND GIVEN THE RELATIVELY
+C FEW AND THICK SOIL LAYERS, THIS GRADIENT SUFFERES SERIOUS
 C TRUNCTION ERRORS YIELDING ERRONEOUSLY HIGH VERTICAL TRANSPORTS OF
-C UNFROZEN WATER IN BOTH DIRECTIONS FROM HUGE HYDRAULIC DIFFUSIVITY.  
+C UNFROZEN WATER IN BOTH DIRECTIONS FROM HUGE HYDRAULIC DIFFUSIVITY.
 C THEREFORE, WE FOUND WE HAD TO ARBITRARILY CONSTRAIN WDF
 C ----------------------------------------------------------------------
       IF (SICEMAX .GT. 0.0)  THEN
