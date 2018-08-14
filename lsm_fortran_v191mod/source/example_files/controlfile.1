@@ -1,0 +1,53 @@
+Model Configuration:
+----------------- 
+41.839     LATITUDE..(N > 0.00 (+); S < 0.00 (-))
+-8.876     LONGITUDE.(W > 0.00 (+); E < 0.00 (-))
+-1         IBINOUT...(+/-) Output type: +1=Binary(GrADS), -1=ASCII(*.TXT)
+283        JDAY......Initial julian day of simulation (1-366)
+0000       TIME......Initial time "hhmm"
+1          NCYCLES...Cycles the forcing data (useful for spin-up runs)
+365        SYDAYS....Days in spin-up year
+.FALSE.    L2nd_data.Use 2nd forcing data file (useful after spin-up runs)
+6817       NRUN......Total # of simulation time steps
+1800       DT........Time step for integration in sec (<= 3600)
+15         NSOIL.....Number of soil layers (2-20)
+10         Z.........Height (above ground) of the forcing wind vector (m)
+0.001  0.01  0.015  0.022  0.034  0.051  0.076  0.114  0.171  0.256  0.384  0.577  0.865  1.297  1.946    K=1,NSOIL...thickness of each soil layer (m)
+--------------------------------------------------
+Filenames of atmospheric data used for input forcing (1 and 2):
+-------------------------------------------------- 
+noah.in
+noah.in
+-------------------------------------------------------------
+Integer indexes designating soil type, veg type and slope type:
+-------------------------------------------------------------
+10         SOILTYP...Soil type index 1-9
+14         VEGTYP....Vegetation type index 1-13
+1          SLOPETYP..Slope type index 1-9
+----
+Monthly ALBEDO (snow free albedo):
+J  F  M  A  M  J  J  A  S  O  N  D
+0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 
+----
+Monthly SHDFAC (green vegetation fraction):
+J  F  M  A  M  J  J  A  S  O  N  D
+0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
+----
+0.75       SNOALB....Max albedo over very deep snow
+0          SEA ICE...Sea ice flag (keep as integer 0 to designate non-sea)
+------------------ 
+Physical parameters:
+------------------ 
+283.15     TBOT......Annual constant bottom boundary soil temperature (K)
+---------------------- 
+Initial state variables:
+---------------------- 
+283.15     T1........Initial skin temperature (K)
+283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15 283.15   STC (temperature at layers)
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0   SMC (total moisture at layers)
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0   SH2O (liquid moisture at layers)
+0          CMC.......Initial canopy water content (m)
+0          SNOWH.....Initial actual snow depth (m)
+0          SNEQV.....Initial water equiv snow depth (m)
+-------------------------------------- 
+----- END OF READABLE CONTROLFILE -----------------------------------------------
