@@ -1,4 +1,4 @@
-# for use with lsm source code version 202
+# for use with lsm source code version 203
 
 ## options for the LSM
 opt <- list()

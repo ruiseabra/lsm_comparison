@@ -4,75 +4,53 @@
 ## make forcing file ###-
 ########################-
 # 1. read weather data
-# 2. interpolate to t_res
-# 3. get tide height and compute submersion
-# 4. use sfc pressure to adjust tide height
-# ?? read wave data and compute wave run-up
-# 5. format output
-# 6. export forcing.in
+# 2. compute submersion
+# 3. format output
+# 4. export forcing.in
 #------------------------------#
 forcing.file <- function(loc, t_range, t_res, output.path) {
-  ## read weather data
-  #forcing_cols <- c("time", "wind", "air", "sst", "sw", "lw", "rh", "pres", "rain", "wave")
-  forcing_cols <- c("time", "wind", "air", "sst", "sw", "lw", "rh", "pres", "rain")
+	## read weather data
+	wfile <- str_c(DIR, "/weather/weather_", t_res, ".RData")
+	if (!file.exists(wfile)) stop("weather file is missing")
+	load(wfile)
 
-  wfile <- dir("data/", full.names = TRUE, pattern = "weather")
-  if (length(wfile) != 1) stop("there must be one - and only one - with 'weather' on its filename")
-  load(wfile)
+	### must be a xts with the following columns (colnames must be respected):
+	## index = time (YYYY-mm-dd HH:MM:SS)
+	# wind - wind speed (m/s)
+	# air  - surface air temperature (K)
+	# sst  - sea surface temperature (K)
+	# sw   - incoming short wave radiation (W/m2)
+	# lw   - incoming  long wave radiation (W/m2)
+	# rh   - relative humidity (0-100%)
+	# pres - surface pressure (Pa)
+	# rain - precipitation rate (mm/s, kg/m2/s) (always >= 0)
+	# tide - height from mean water level (cm)
+	# wave - NOT YET IMPLEMENTED sig or max wave height (m)
 
-  ### must be a tibble with the following columns (colnames must be respected):
-  # time - YYYY-mm-dd HH:MM
-  # wind - wind speed (m/s) [alternativelly supply u and v components (m/s)]
-  # air  - surface air temperature (K)
-  # sst  - sea surface temperature (K)
-  # sw   - incoming short wave radiation (W/m2)
-  # lw   - incoming  long wave radiation (W/m2)
-  # rh   - relative humidity (%)
-  # pres - surface pressure (Pa)
-  # rain - precipitation rate (mm/h, kg/m2/h)
-  # wave - NOT YET IMPLEMENTED sig or max wave height (m)
+	# transform tide heights into tide in or tide out
+	# 1 = underwater, 0 = out-of-water
+	w$tide <- ifelse(w$tide > loc$height, 1, 0)
 
-  if (!identical(sort(colnames(w)), sort(forcing_cols))) stop("colnames(w) does not match requirements")
-  w <- filter(w, time %within% interval(t_range[1], t_range[2]))
-  w <- w[, forcing_cols]
+	# replace sst from sat by sst from logger data
+	w$sst <- approx(time(wat), as.numeric(wat$sst), time(w), method = "linear", rule = 2)$y %>%
+		"+"(273.15) %>%
+		round(2)
 
-  # interpolate to the desired time resolution
-  res <- with(w, difftime(time[1], time[2], units = "sec")) %>% abs
-  if (t_res != res) {
-    t2 <- seq.POSIXt(first(t_range), last(t_range), by = t_res)
-    tmp <- merge(zoo(select(w, -time), w$time), zoo(, t2))
-    tmp <- tmp[t2, ] # important only if t_res > res
-    tmp <- as.data.frame(coredata(na.fill(tmp, "extend")))
-    w <- as_tibble(cbind(t2, tmp))
-    colnames(w) <- forcing_cols
-  }
-
-  # get tide data
-  tides <- fes.tides(loc, t_range, t_res)$tide
-  # barometric pressure correction (+10 hPa = -10 cm; REF = 1013 hPa)
-  # this approach is crude but can be extended to the future as well as the past, with the same level of bias
-  tides <- tides - (w$pres - 1013)
-  # 1 = underwater, 0 = out-of-water
-  w$tide <- ifelse(tides > loc$height, 1, 0)
-  # include waverunup
-  # include atmospheric effects (pressure, wind surge)
-
-  # replace sst from sat by sst from logger data
-  w$sst <- approx(wat$time, wat$temp, w$time, method = "linear", rule = 2)$y %>% "+"(273.15) %>% round(2)
+	w <- coredata(w) %>% as.data.frame
 
   # clean, round and format
-  w$wind <- sprintf("%6.2f", w$wind)
-  w$air  <- sprintf("%6.1f", w$air)
-  w$sst  <- sprintf("%6.1f", w$sst)
-  w$sw   <- sprintf("%7.1f", w$sw)
-  w$lw   <- sprintf("%7.1f", w$lw)
-  w$rh   <- sprintf("%6.1f", w$rh)
-  w$pres <- sprintf("%9.1f", w$pres)
-  w$rain <- sprintf("%7.2f", ifelse(w$rain < 0, 0, w$rain))
-  w$tide <- sprintf("%2i"  , w$tide)
+  w$wind <- sprintf("%10.4f", w$wind)
+  w$air  <- sprintf("%10.2f", w$air)
+  w$sst  <- sprintf("%10.2f", w$sst)
+  w$sw   <- sprintf("%10.2f", w$sw)
+  w$lw   <- sprintf("%10.2f", w$lw)
+  w$rh   <- sprintf("%10.2f", w$rh)
+  w$pres <- sprintf("%10.1f", w$pres)
+  w$rain <- sprintf("%10.6f", w$rain)
+  w$tide <- sprintf("%4i"   , w$tide)
 
   # export focing file to temporary folder
-  write.table(x = select(w, -time), file = output.path, quote = FALSE, col.names = FALSE, row.names = FALSE)
+  write.table(x = w, file = output.path, quote = FALSE, col.names = FALSE, row.names = FALSE)
 }
 ########################-
 ########################-
@@ -110,8 +88,9 @@ fortran.multiLine <- function(x) {
 compile.lsm <- function(path, layer = 1) {
   file.remove(dir(path, full.names = TRUE, pattern = "lsm"))
 
-  # original source code (remains unaltered)
-  lsm1 <- dir(str_c(dirname(path), "/source"), full.names = TRUE, pattern = "203")
+	# original source code (remains unaltered)
+	lsm1 <- dir(dirname(getwd()), full.names = TRUE, pattern = "lsm_fortran")
+	lsm1 <- dir(str_c(lsm1, "/source"), full.names = TRUE, pattern = "203")
   # edited source code
   lsm2 <- str_c(tmp, "lsm.f")
   # compiled lsm
